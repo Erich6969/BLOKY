@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>BLOKY Voting Form</title>
+  <title>BLOKY</title>
   <style>
     .hidden {
       display: none;
@@ -11,10 +11,10 @@
 <body>
   <h1>BLOKY Voting Form</h1>
   <form id="votingForm">
-    <label for="fname">First Name:</label>
+    <label for="fname">Krstné meno:</label>
     <input type="text" id="fname" name="fname" required><br><br>
     
-    <label for="lname">Last Name:</label>
+    <label for="lname">Priezvisko:</label>
     <input type="text" id="lname" name="lname" required><br><br>
     
     <label for="email">Email:</label>
@@ -23,7 +23,10 @@
     <p>Select your option:</p>
     
     <input type="radio" id="blokA" name="option" value="blokA">
-    <label for="blokA">BLOK A</label><br><br>
+    <label for="blokA" id="blokALabel">BLOK A</label><br><br>
+
+    <input type="radio" id="blokB" name="option" value="blokB">
+    <label for="blokB" id="blokBLabel">BLOK B</label><br><br>
     
     <input type="submit" value="Vote">
   </form>
@@ -34,10 +37,14 @@
   </div>
 
   <script>
-    // Object to store the vote counts and timestamps by email
+    // Object to store the vote counts and timestamps by option
     var voteData = {
-      blokA: { count: 0, votes: [] }
+      blokA: { count: 0, votes: [] },
+      blokB: { count: 0, votes: [] }
     };
+
+    // Object to track the unique combination of email, first name, and last name
+    var votedUsers = {};
 
     // Function to update the results display
     function updateResults() {
@@ -55,7 +62,7 @@
             var votesList = document.createElement("ul");
             votes.forEach(function(vote) {
               var voteItem = document.createElement("li");
-              voteItem.innerHTML = "Email: " + vote.email + ", Timestamp: " + vote.timestamp;
+              voteItem.innerHTML = "Name: " + vote.fname + " " + vote.lname + ", Email: " + vote.email + ", Timestamp: " + vote.timestamp;
               votesList.appendChild(voteItem);
             });
             optionElement.appendChild(votesList);
@@ -63,6 +70,26 @@
 
           resultsDiv.appendChild(optionElement);
         }
+      }
+
+      // Disable options that have reached the vote limit
+      var blokALabel = document.getElementById("blokALabel");
+      var blokBLabel = document.getElementById("blokBLabel");
+
+      if (voteData.blokA.count >= 2) {
+        blokALabel.style.color = "gray";
+        document.getElementById("blokA").disabled = true;
+      } else {
+        blokALabel.style.color = "black";
+        document.getElementById("blokA").disabled = false;
+      }
+
+      if (voteData.blokB.count >= 2) {
+        blokBLabel.style.color = "gray";
+        document.getElementById("blokB").disabled = true;
+      } else {
+        blokBLabel.style.color = "black";
+        document.getElementById("blokB").disabled = false;
       }
     }
 
@@ -74,20 +101,21 @@
       if (selectedOption) {
         var optionId = selectedOption.value;
         var email = document.getElementById("email").value;
+        var fname = document.getElementById("fname").value;
+        var lname = document.getElementById("lname").value;
 
-        // Check if the email has already voted for the selected option
-        var votes = voteData[optionId].votes;
-        var userHasVoted = votes.some(function(vote) {
-          return vote.email === email;
-        });
-
-        if (userHasVoted) {
-          alert("You have already voted for this option.");
+        // Check if the combination of email, first name, and last name has already voted
+        var votedKey = email + "|" + fname + "|" + lname;
+        if (votedUsers[email]) {
+          alert("This email address has already been used for voting.");
         } else {
-          // Update the vote count and add the vote with email and timestamp
+          // Update the vote count and add the vote with email, first name, last name, and timestamp
           var currentTimestamp = new Date().toLocaleString();
           voteData[optionId].count++;
-          voteData[optionId].votes.push({ email: email, timestamp: currentTimestamp });
+          voteData[optionId].votes.push({ fname: fname, lname: lname, email: email, timestamp: currentTimestamp });
+
+          // Mark the email address as voted
+          votedUsers[email] = true;
 
           // Update the results display
           updateResults();
