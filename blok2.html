@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>BLOKY Voting Form</title>
+  <style>
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>BLOKY Voting Form</h1>
+  <form id="votingForm">
+    <label for="fname">First Name:</label>
+    <input type="text" id="fname" name="fname" required><br><br>
+    
+    <label for="lname">Last Name:</label>
+    <input type="text" id="lname" name="lname" required><br><br>
+    
+    <label for="email">Email:</label>
+    <input type="email" id="email" name="email" required><br><br>
+    
+    <p>Select your option:</p>
+    
+    <input type="radio" id="blokA" name="option" value="blokA">
+    <label for="blokA">BLOK A</label><br><br>
+    
+    <input type="submit" value="Vote">
+  </form>
+
+  <h2>Results</h2>
+  <div id="results">
+    <p>Loading results...</p>
+  </div>
+
+  <script>
+    // Object to store the vote counts and timestamps by email
+    var voteData = {
+      blokA: { count: 0, votes: [] }
+    };
+
+    // Function to update the results display
+    function updateResults() {
+      var resultsDiv = document.getElementById("results");
+      resultsDiv.innerHTML = "";
+
+      for (var option in voteData) {
+        if (voteData.hasOwnProperty(option)) {
+          var voteCount = voteData[option].count;
+          var votes = voteData[option].votes;
+          var optionElement = document.createElement("div");
+          optionElement.innerHTML = "<h3>" + option + ": " + voteCount + " votes</h3>";
+
+          if (votes.length > 0) {
+            var votesList = document.createElement("ul");
+            votes.forEach(function(vote) {
+              var voteItem = document.createElement("li");
+              voteItem.innerHTML = "Email: " + vote.email + ", Timestamp: " + vote.timestamp;
+              votesList.appendChild(voteItem);
+            });
+            optionElement.appendChild(votesList);
+          }
+
+          resultsDiv.appendChild(optionElement);
+        }
+      }
+    }
+
+    // Event listener for form submission
+    document.getElementById("votingForm").addEventListener("submit", function(event) {
+      event.preventDefault(); // Prevent form submission
+
+      var selectedOption = document.querySelector("input[name='option']:checked");
+      if (selectedOption) {
+        var optionId = selectedOption.value;
+        var email = document.getElementById("email").value;
+
+        // Check if the email has already voted for the selected option
+        var votes = voteData[optionId].votes;
+        var userHasVoted = votes.some(function(vote) {
+          return vote.email === email;
+        });
+
+        if (userHasVoted) {
+          alert("You have already voted for this option.");
+        } else {
+          // Update the vote count and add the vote with email and timestamp
+          var currentTimestamp = new Date().toLocaleString();
+          voteData[optionId].count++;
+          voteData[optionId].votes.push({ email: email, timestamp: currentTimestamp });
+
+          // Update the results display
+          updateResults();
+
+          // Reset the form
+          event.target.reset();
+        }
+      } else {
+        alert("Please select an option before voting.");
+      }
+    });
+
+    // Initial update of results
+    updateResults();
+  </script>
+</body>
+</html>
